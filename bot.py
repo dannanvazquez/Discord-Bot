@@ -1,10 +1,9 @@
 import os
 
-from dotenv import load_dotenv
-
 import nextcord
-from nextcord.ext import commands
+from dotenv import load_dotenv
 from nextcord import Interaction
+from nextcord.ext import commands
 
 # Load data from .env and check if the variables are empty
 load_dotenv()
@@ -52,7 +51,7 @@ async def on_member_remove(member):
 # Simple slash command to make sure the bot is responding.
 @bot.slash_command(name="ping", description="Responds with pong")
 async def ping(interaction: Interaction):
-    await interaction.response.send_message("Pong!")
+    await interaction.send("Pong!", ephemeral=True)
 
 # Load cog files
 for file in os.listdir("./cogs"):
