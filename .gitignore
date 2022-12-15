@@ -1,2 +1,5 @@
 # Cogs cache directory
 cogs/__pycache__/
+
+# Environment Variables File
+.env
