@@ -39,15 +39,15 @@ async def on_ready():
 
 # Welcome new members to the server through the system messages channel
 @bot.event
-async def on_member_join(ctx):
-    if ctx.guild.system_channel:
-        await ctx.guild.system_channel.send(f"Welcome to the server, {ctx.author.mention}!")
+async def on_member_join(member):
+    if member.guild.system_channel:
+        await member.guild.system_channel.send(f"Welcome to the server, {member.mention}!")
 
 # Send farewells to members leaving the server through the system messages channel
 @bot.event
-async def on_member_remove(ctx):
-    if ctx.guild.system_channel:
-        await ctx.guild.system_channel.send(f"Goodbye, {ctx.author.mention}.")
+async def on_member_remove(member):
+    if member.guild.system_channel:
+        await member.guild.system_channel.send(f"Goodbye, {member.mention}.")
 
 # Simple slash command to make sure the bot is responding.
 @bot.slash_command(name="ping", description="Responds with pong")
