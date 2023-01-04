@@ -67,29 +67,32 @@ class Music(commands.Cog):
 
     # Plays the next song in queue once a song is finished.
     async def play_next(self, interaction):
-        del self.song_queue[0]
-        if len(self.song_queue) > 0:
-            player = await YTDLSource.from_url(self.song_queue[0], loop=self.bot.loop, stream=True)
+        if len(self.song_queue) > 1:
+            player = await YTDLSource.from_url(self.song_queue[1][0], loop=self.bot.loop, stream=True)
             interaction.guild.voice_client.play(player, after=lambda e: Music.play_next(self, interaction))
             embed = nextcord.Embed(title = "Now Playing", description = player.title, color = 0x3ccbe8)
-            await interaction.send(embed=embed)
+            embed.set_footer(text = f"Added by {self.song_queue[1][2]}")
+            await self.song_queue[1][1].send(embed=embed)
         else:
-            asyncio.run_coroutine_threadsafe(await interaction.send("No more songs in queue."))
+            embed = nextcord.Embed(title = "No more songs in queue.", color = 0x3ccbe8)
+            await self.song_queue[0][1].send(embed=embed)
             await interaction.guild.voice_client.disconnect()
+        del self.song_queue[0]
     
     # Slash command that plays a song by title name or YouTube URL. Without any parameter, it plays the current song in queue if paused.
     @nextcord.slash_command(name="play", description="Plays a youtube video given the title or link. Without a parameter, unpauses the current video!")
     async def play(self, interaction: Interaction, song: str = SlashOption(description="Song title or URL", required=False)):
         """Streams from a URL on YouTube"""
         if song is not None:
-            self.song_queue.append(song)
+            song_listing = [song, interaction.channel, interaction.user]
+            self.song_queue.append(song_listing)
             player = await YTDLSource.from_url(song, loop=self.bot.loop, stream=True)
             if len(self.song_queue) == 1:
                 interaction.guild.voice_client.play(player, after=lambda e: Music.play_next(self, interaction))
                 embed = nextcord.Embed(title = "Now Playing", description = player.title, color = 0x3ccbe8)
                 await interaction.send(embed=embed)
             else:
-                await interaction.send(embed=nextcord.Embed(title = "Song has been added to the queue!", description = player.title, color = 0x3ccbe8))
+                await interaction.send(embed=nextcord.Embed(title = "Song has been added to the queue!", description = player.title, color = 0x1fab13))
         else:
             if not interaction.voice_client.is_playing() and len(self.song_queue) > 0:
                 interaction.voice_client.resume()
@@ -99,7 +102,7 @@ class Music(commands.Cog):
 
     # Slash command that pauses the current song. If already paused, then it resumes the current song in queue.
     @nextcord.slash_command(name="pause", description="Pauses/resumes the current song that's playing.")
-    async def pause(self, interaction: Interaction):
+    async def pause(self, interaction: Interaction): 
         """Pauses/resumes the current song"""
         if not interaction.guild.voice_client.is_paused():
             interaction.guild.voice_client.pause()
