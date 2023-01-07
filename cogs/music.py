@@ -100,6 +100,30 @@ class Music(commands.Cog):
             else:
                 await interaction.send("Specify what song you would like to play by using '/play <song name or url>'", ephemeral=True)
 
+    # Slash command that adds a playlist to the queue
+    @nextcord.slash_command(name="playlist", description="Add a playlist to the queue")
+    async def playlist(self, interaction: Interaction, playlist: str = SlashOption(description="Playlist link", required=True)):
+        loop = self.bot.loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(playlist, download=False))
+
+        if "entries" in data:
+            entries = data["entries"]
+            embed = nextcord.Embed(title = "Added playlist to the queue!", description = f"Playlist name: {entries[0]['playlist']}\n{len(entries)} songs added!", color = 0x3ccbe8)
+            await interaction.channel.send(embed=embed)
+
+            # Loop through entries to grab each webpage_url and add to the song_queue
+            for entry in entries:
+                song_listing = [entry['webpage_url'], interaction.channel, interaction.user]
+                self.song_queue.append(song_listing)
+            
+
+            if (len(entries) == len(self.song_queue)):
+                player = await YTDLSource.from_url(self.song_queue[0][0], loop=self.bot.loop, stream=True)
+                interaction.guild.voice_client.play(player, after=lambda e: Music.play_next(self, interaction))
+                await interaction.channel.send(embed = nextcord.Embed(title = "Now Playing", description = player.title, color = 0x3ccbe8))
+        else:
+            await interaction.send("Not a playlist", ephemeral=True)
+
     # Slash command that pauses the current song. If already paused, then it resumes the current song in queue.
     @nextcord.slash_command(name="pause", description="Pauses/resumes the current song that's playing.")
     async def pause(self, interaction: Interaction): 
@@ -132,6 +156,7 @@ class Music(commands.Cog):
 
     # Makes sure that the user is in a voice channel before executing commands.
     @join.before_invoke
+    @playlist.before_invoke
     @play.before_invoke
     @pause.before_invoke
     @skip.before_invoke
