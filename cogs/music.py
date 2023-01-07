@@ -154,6 +154,15 @@ class Music(commands.Cog):
         await interaction.guild.voice_client.disconnect()
         await interaction.send(f"Cleared the queue and disconnected!")
 
+    # Slash command to change the volume or know what the current volume is.
+    @nextcord.slash_command(name="volume", description="Change the volume of the music bot, or without a parameter says what the current volume is.")
+    async def volume(self, interaction: Interaction, volume: int = SlashOption(description="Set the volume out of 100", required=False)):
+        if volume is None:
+            await interaction.send(embed=nextcord.Embed(title = f"The current volume is {interaction.guild.voice_client.source.volume * 100}%", color = 0x3ccbe8), ephemeral=True)
+        else:
+            interaction.guild.voice_client.source.volume = volume / 100
+            await interaction.send(embed=nextcord.Embed(title = f"Changed volume to {volume}%", color = 0x1fab13))
+
     # Makes sure that the user is in a voice channel before executing commands.
     @join.before_invoke
     @playlist.before_invoke
@@ -161,6 +170,7 @@ class Music(commands.Cog):
     @pause.before_invoke
     @skip.before_invoke
     @stop.before_invoke
+    @volume.before_invoke
     async def ensure_voice(interaction: Interaction):
         if interaction.guild.voice_client is None:
             if interaction.user.voice:
