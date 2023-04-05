@@ -1,7 +1,7 @@
 import asyncio
 
 import nextcord
-import youtube_dl
+import yt_dlp as youtube_dl
 from nextcord.ext import commands
 from nextcord import Interaction, SlashOption
 
@@ -48,7 +48,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
             data = data["entries"][0]
 
         filename = data["url"] if stream else ytdl.prepare_filename(data)
-        return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+        return cls(nextcord.FFmpegPCMAudio(filename, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5", **ffmpeg_options), data=data)
 
 class Music(commands.Cog):
     song_queue = []
@@ -83,16 +83,21 @@ class Music(commands.Cog):
     @nextcord.slash_command(name="play", description="Plays a youtube video given the title or link. Without a parameter, unpauses the current video!")
     async def play(self, interaction: Interaction, song: str = SlashOption(description="Song title or URL", required=False)):
         """Streams from a URL on YouTube"""
+
         if song is not None:
+            embed = nextcord.Embed(title = "Loading song...", description = f"Looking to play: {song}", color = 0xcacaca)
+            await interaction.response.send_message(embed=embed)
+            
             song_listing = [song, interaction.channel, interaction.user]
             self.song_queue.append(song_listing)
             player = await YTDLSource.from_url(song, loop=self.bot.loop, stream=True)
             if len(self.song_queue) == 1:
                 interaction.guild.voice_client.play(player, after=lambda e: Music.play_next(self, interaction))
                 embed = nextcord.Embed(title = "Now Playing", description = player.title, color = 0x3ccbe8)
-                await interaction.send(embed=embed)
+                await interaction.edit_original_message(embed=embed)
             else:
-                await interaction.send(embed=nextcord.Embed(title = "Song has been added to the queue!", description = player.title, color = 0x1fab13))
+                embed = nextcord.Embed(title = "Song has been added to the queue!", description = player.title, color = 0x1fab13)
+                await interaction.edit_original_message(embed=embed)
         else:
             if not interaction.voice_client.is_playing() and len(self.song_queue) > 0:
                 interaction.voice_client.resume()
