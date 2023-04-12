@@ -177,12 +177,16 @@ class Music(commands.Cog):
     @stop.before_invoke
     @volume.before_invoke
     async def ensure_voice(interaction: Interaction):
-        if interaction.guild.voice_client is None:
-            if interaction.user.voice:
-                await interaction.user.voice.channel.connect()
-            else:
-                await interaction.send("You are not connected to a voice channel.", ephemeral=True)
-                raise commands.CommandError("Author not connected to a voice channel.")
+        if interaction.guild is None:
+            await interaction.send("This command must be ran within a server.", ephemeral=True)
+            raise commands.CommandError("Author ran command outside a server.")
+        else:
+            if interaction.guild.voice_client is None:
+                if interaction.user.voice:
+                    await interaction.user.voice.channel.connect()
+                else:
+                    await interaction.send("You are not connected to a voice channel.", ephemeral=True)
+                    raise commands.CommandError("Author not connected to a voice channel.")
 
 def setup(bot):
     bot.add_cog(Music(bot))
