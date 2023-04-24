@@ -70,7 +70,8 @@ class Music(commands.Cog):
         if len(self.song_queue) > 1:
             player = await YTDLSource.from_url(self.song_queue[1][0], loop=self.bot.loop, stream=True)
             interaction.guild.voice_client.play(player, after=lambda e: Music.play_next(self, interaction))
-            embed = nextcord.Embed(title = "Now Playing", description = player.title, color = 0x3ccbe8)
+            embed = nextcord.Embed(title = "Now Playing:", description = player.title, color = 0x3ccbe8)
+            embed.set_thumbnail(url = player.data.get('thumbnail'))
             embed.set_footer(text = f"Added by {self.song_queue[1][2]}")
             await self.song_queue[1][1].send(embed=embed)
         else:
@@ -93,10 +94,12 @@ class Music(commands.Cog):
             player = await YTDLSource.from_url(song, loop=self.bot.loop, stream=True)
             if len(self.song_queue) == 1:
                 interaction.guild.voice_client.play(player, after=lambda e: Music.play_next(self, interaction))
-                embed = nextcord.Embed(title = "Now Playing", description = player.title, color = 0x3ccbe8)
+                embed = nextcord.Embed(title = "Now Playing:", description = player.title, color = 0x3ccbe8)
+                embed.set_thumbnail(url = player.data.get('thumbnail'))
                 await interaction.edit_original_message(embed=embed)
             else:
                 embed = nextcord.Embed(title = "Song has been added to the queue!", description = player.title, color = 0x1fab13)
+                embed.set_thumbnail(url = player.data.get('thumbnail'))
                 await interaction.edit_original_message(embed=embed)
         else:
             if not interaction.voice_client.is_playing() and len(self.song_queue) > 0:
