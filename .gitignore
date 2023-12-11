@@ -1,5 +1,11 @@
 # Cogs cache directory
 cogs/__pycache__/
 
+# Visual Studio cache directory
+.vs/
+
+# Visual Studio Code directory
+.vscode/
+
 # Environment Variables File
 .env
