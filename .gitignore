@@ -9,3 +9,6 @@ cogs/__pycache__/
 
 # Environment Variables File
 .env
+
+# Log directory
+logs/
