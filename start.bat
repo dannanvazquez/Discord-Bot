@@ -1,0 +1,3 @@
+@echo
+
+py bot.py
