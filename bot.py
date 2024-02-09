@@ -32,9 +32,6 @@ bot = commands.Bot(command_prefix, description="Simple Discord bot", intents=int
 @bot.event
 async def on_ready():
     print(f'{bot.user} has logged in.')
-    if owner_id != "":
-        user = await bot.fetch_user(owner_id)
-        await user.send(f"{bot.user} has logged in.")
 
 # Welcome new members to the server through the system messages channel
 @bot.event
